@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	    <title>Andrea's Developer Tracker</title>
+        <link rel="stylesheet" type="text/css" href="css/portrait.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <script src="js/jquery-1.9.1.js"></script>
+        <script src="js/handlebars.js"></script>
+		<script src="js/ember-1.0.0-rc.1.min.js"></script>
+        <script src="js/app.js"></script>
+        <script src="js/canSchv2.js"></script>
+    </head>
+    
+    <body>
+        <script type="text/x-handlebars" data-template-name="application">
+			<div id="headerBar">
+    			<div style="width:30px;height:30px;display:block;float:left;padding:7.5px;">
+					<span id="menuDrop">&nbsp;</span>
+				</div>
+				<span class="pageTitle">Monday, April 25, 2013.</span>
+			</div>
+			<div id="dropDownMenu" style="display: none;">
+				<ul>
+					<li>
+						{{#linkTo "index"}}Dashboard{{/linkTo}}
+					</li>
+					<li>
+						{{#linkTo "developers"}}Member List{{/linkTo}}
+					</li>
+					<li>
+						{{#linkTo "teams"}}Team List{{/linkTo}}
+					</li>
+					<li>
+						{{#linkTo "projects"}}Project List{{/linkTo}}
+					</li>
+					<li>
+						{{#linkTo "assignments"}}Assignments{{/linkTo}}
+					</li>
+					<hr>
+					<li>
+						{{#linkTo "index"}}Refresh Data{{/linkTo}}
+					</li>
+				</ul>
+			</div>
+			<div id="contentContainer">
+        		{{outlet}}
+			</div>
+			
+			<footer>
+			</footer>
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="index">
+        	<div id="MemberWidget" class="widget">
+                <div class="greenBox" style="width:45%;text-align:center;padding:5px;margin:5px;float:left;">
+                    {{memberCount}} Members in {{teamCount}} Teams
+                </div>
+                <div class="greenBox" style="width:44%;text-align:center;padding:5px;margin:5px;float:left;">
+                    {{#linkTo "developers"}}+ Another Member{{/linkTo}}
+                </div>
+            </div>
+			<div id="TeamWidget" class="widget">
+                <div class="greenBox" style="width:45%;text-align:center;padding:5px;margin:5px;float:left;">
+                    {{memberCount}} Teams in total
+                </div>
+                <div class="greenBox" style="width:44%;text-align:center;padding:5px;margin:5px;float:left;">
+                    {{#linkTo "teams"}}+ Another Team{{/linkTo}}
+                </div>
+            </div>
+			<div class="heading" style="clear:both"><br>12 Month Schedule</div>
+			{{#view App.ScheduleView}}
+				Canvas not supported.
+			{{/view}}
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="developers">
+			{{#each developer in controller}}
+			<div class="idCard" {{bindAttr index="developer.id"}}>
+				<img {{bindAttr src="developer.picture"}}>
+				<span class="heading">{{developer.role}}</span><br />
+				<span class="detail">{{developer.firstName}} {{developer.lastName}}</span>
+				<div class="toolBar">
+					{{#linkTo developer developer}}
+						<span class="view icon"></span>
+					{{/linkTo}}
+					{{#linkTo developer developer}}
+						<span class="edit icon"></span>
+					{{/linkTo}}
+					<span class="icon delete"></span>
+				</div>
+			</div>
+			{{/each}}
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="developer">
+        	<img style="float:right;width:200px;height:200px;border-radius:1em" 
+			{{bindAttr src="picture"}}>
+			<span class="mainTitle">
+				Personal Profile
+			</span><br />
+			<span class="heading">
+				Name:&nbsp;
+			</span>
+			<span class="detail">
+				{{firstName}} {{lastName}}
+			</span><br />
+			<span class="heading">
+				Role:&nbsp;
+			</span>
+			<span class="detail">
+				{{role}}
+			</span><br />
+			<span class="heading">
+				Classification:&nbsp;
+			</span>
+			<span class="detail">
+				{{classification}}
+			</span><br />
+			<span class="heading">
+				Phone Number:&nbsp;
+			</span>
+			<span class="detail">
+				{{phoneNumber}}
+			</span><br />
+			<span class="heading">
+				Skype:&nbsp;
+			</span>
+			<span class="detail">
+				{{skype}}
+			</span><br />
+			<span class="heading">
+				eMail:&nbsp;
+			</span>
+			<span class="detail">
+				{{email}}
+			</span><br />
+			<br/>
+			<span class="heading">
+				Current teams:&nbsp;
+			</span>
+			<span class="detail">
+			</span><br/>
+			<br/>
+			<br/>
+			<span class="mainTitle" style="font-size:x-large">
+				Current Assignments:<br/>
+				<table style="width:100%">
+					<tr class="heading" style="font-size:small">
+						<td>
+							<b>Project Name</b>
+						</td>
+						<td>
+							<b>Classification</b>
+						</td>
+						<td>
+							<b>Date Start</b>
+						</td>
+						<td>
+							<b>Date End</b>
+						</td>
+						<td>
+							<b>Description</b>
+						</td>
+					</tr>
+				</table>
+			</span>
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="teams">
+        	Teams.
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="team">
+        	
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="projects">
+        	Projects.
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="project">
+        	
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="assignments">
+        	Assignments.
+        </script>
+        
+        <script type="text/x-handlebars" data-template-name="assignment">
+        	
+        </script>
+    </body>
+    
+</html>
