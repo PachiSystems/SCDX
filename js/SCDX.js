@@ -51,7 +51,7 @@
 	SCDX.highPrioColor = '#F66';
 	SCDX.lowPrioColor = '#6F6';
 	SCDX.defaultPrioColor = '#66F';
-	SCDX.roundedCorners = false;
+	SCDX.roundedCorners = true;
 	SCDX.timeToFade = 1000.0;
 	SCDX.fontFace = 'bold 16px Arial';
 
@@ -108,12 +108,11 @@
 					} else {
 						toolTip.style.visibility = 'hidden';
 					}
-					
 				}
 			}
-		
 		};
 		
+		// And just to make sure that little tooltip isn't going to fllow the mouse everywhere...
 		CANVAS.onmouseout = function () {
 			toolTip.style.visibility = 'hidden';
 		}
@@ -212,7 +211,7 @@
 		overlayCTX.font = SCDX.fontFace;
 		
 		if(SCDX.roundedCorners) {
-			roundRect(overlayCTX,(WIDTH / 4),(HEIGHT/2),(WIDTH / 2 ),47,5,true,true);
+			roundRect(overlayCTX,(WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2),5,true,true);
 		} else {
 			overlayCTX.fillRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
 			overlayCTX.strokeRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
@@ -343,12 +342,6 @@
 					curGroup = projList[i].groupId;
 					CTX.fillStyle = '#333';
 					CTX.fillText(projList[i].rowLabel,5,((projList[i].groupId+0.6) * 49));
-					/*
-					CTX.moveTo(0,((projList[i].groupId + 1) * 49)-0.5);
-					CTX.lineTo(WIDTH,((projList[i].groupId + 1) * 49)-0.5);
-					CTX.strokeStyle = '#CCC';
-					CTX.stroke();
-					*/
 				}
 				
 				// Set correct colour for priority:
@@ -401,20 +394,20 @@
 					projList[i].xPos = leftEdge;
 					projList[i].yPos = topEdge;
 					projList[i].width = lengthOfProject;
-					projList[i].height = 47;
+					projList[i].height = 47.5;
 					// Draw it on:
 					if(SCDX.roundedCorners) {
-						roundRect(CTX, leftEdge, topEdge, lengthOfProject,47,5,true,true);
+						roundRect(CTX, leftEdge, topEdge, lengthOfProject,47.5,5,true,true);
 					} else {
-						CTX.clearRect(leftEdge,topEdge,lengthOfProject,47);
-						CTX.fillRect(leftEdge,topEdge,lengthOfProject,47);
-						CTX.strokeRect(leftEdge,topEdge,lengthOfProject,47);
+						CTX.clearRect(leftEdge,topEdge,lengthOfProject,47.5);
+						CTX.fillRect(leftEdge,topEdge,lengthOfProject,47.5);
+						CTX.strokeRect(leftEdge,topEdge,lengthOfProject,47.5);
 					}
 				}
 			}
 		} else {
 			SCDX.displayErrorMessage('No projects to display.');
-		}		
+		}
 	}
 	
 	function fade(element,fadeSpeed) {
