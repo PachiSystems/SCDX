@@ -1,193 +1,106 @@
 <!DOCTYPE html>
 <html>
     <head>
-	    <title>Andrea's Developer Tracker</title>
-        <link rel="stylesheet" type="text/css" href="css/portrait.css">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <script src="js/jquery-1.9.1.js"></script>
-        <script src="js/handlebars.js"></script>
-		<script src="js/ember-1.0.0-rc.1.min.js"></script>
-        <script src="js/app.js"></script>
-        <script src="js/canSchv2.js"></script>
+	    <title>SCDX Demo</title>
     </head>
     
     <body>
-        <script type="text/x-handlebars" data-template-name="application">
-			<div id="headerBar">
-    			<div style="width:30px;height:30px;display:block;float:left;padding:7.5px;">
-					<span id="menuDrop">&nbsp;</span>
-				</div>
-				<span class="pageTitle">Monday, April 25, 2013.</span>
-			</div>
-			<div id="dropDownMenu" style="display: none;">
-				<ul>
-					<li>
-						{{#linkTo "index"}}Dashboard{{/linkTo}}
-					</li>
-					<li>
-						{{#linkTo "developers"}}Member List{{/linkTo}}
-					</li>
-					<li>
-						{{#linkTo "teams"}}Team List{{/linkTo}}
-					</li>
-					<li>
-						{{#linkTo "projects"}}Project List{{/linkTo}}
-					</li>
-					<li>
-						{{#linkTo "assignments"}}Assignments{{/linkTo}}
-					</li>
-					<hr>
-					<li>
-						{{#linkTo "index"}}Refresh Data{{/linkTo}}
-					</li>
-				</ul>
-			</div>
-			<div id="contentContainer">
-        		{{outlet}}
-			</div>
+    	<!-- This is where the schedule object will be -->
+        <div width="1024" id="scheduleView"></div>
+        
+        <!-- A set of inputs to change the view as a demo -->
+        <div>
+            Year: <input type="text" value="2013" style="width:40px" id="yearField">
+            Month: <select id="monthDrop">
+                    <option value=1 selected>January</option>
+                    <option value=2>February</option>
+                    <option value=3>March</option>
+                    <option value=4>April</option>
+                    <option value=5>May</option>
+                    <option value=6>June</option>
+                    <option value=7>July</option>
+                    <option value=8>August</option>
+                    <option value=9>September</option>
+                    <option value=10>October</option>
+                    <option value=11>November</option>
+                    <option value=12>December</option>
+                </select>
+            Length: <select id="lengthDrop">
+                <option value=1>1 Month</option>
+                <option value=2>2 Months</option>
+                <option value=3>3 Months</option>
+                <option value=4>4 Months</option>
+                <option value=5>5 Months</option>
+                <option value=6>6 Months</option>
+                <option value=12 selected>12 Months</option>
+                <option value=15>15 Months</option>
+                <option value=18>18 Months</option>
+                <option value=24>24 Months</option>
+            </select>
+            <button onClick="updateView()">Change</button>
+        </div>
+        
+        <script src="js/SCDX.js"></script>
+        <script>
+		// A hard coded set of schedule items.
+		// Yes, they're in the global namespace, but it's only a demo! :P
+		
+        var scheduleList = [{
+			'groupId':1,
+			'rowLabel':'Team One',
+			'startDate':1360886400000,
+			'endDate':1363305600000,
+			'prio':'high',
+			'description':"Project: Test<br>Stakeholder: Me, Myself &amp; I<br>Members: 10"
+		},{
+			'groupId':1,
+			'rowLabel':'Team One',
+			'startDate':1363392000000,
+			'endDate':1364688000000,
+			'prio':'low'
+		},{
+			'groupId':2,
+			'rowLabel':'Team Five',
+			'startDate':1360886400000,
+			'endDate':1364688000000
+		},{
+			'groupId':2,
+			'rowLabel':'Team Five',
+			'startDate':1364774400000,
+			'endDate':1367280000000,
+			'prio':'low'
+		},{
+			'groupId':2,
+			'rowLabel':'Team Five',
+			'startDate':1367366400000,
+			'endDate':1375228800000,
+			'prio':'high'
+		},{
+			'groupId':3,
+			'rowLabel':'Team Four',
+			'startDate':1367366400000,
+			'endDate':1375228800000,
+			'description':'Event: Big Project<br>Brian Milton<br>Includes: 5 developers'
+		}];
+		
+		// Create the schedule object:
+		// Passes the '#scheduleView', specifies 2013 as the year, with 1024px width displaying 12 months from January.
+		SCDX.createSchedule('scheduleView',2013,1024,12,1);
+		
+		// Assign the array of items to the view.
+		SCDX.setSchedule(scheduleList);
+		
+		SCDX.displayErrorMessage("Welcome to SCDX. Don't panic!",2500);
+		
+		// When the button is clicked, this function will triger a view change:
+		function updateView() {
+			var year = document.getElementById('yearField').value,
+				month = document.getElementById('monthDrop').value,
+				duration = document.getElementById('lengthDrop').value;
 			
-			<footer>
-			</footer>
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="index">
-        	<div id="MemberWidget" class="widget">
-                <div class="greenBox" style="width:45%;text-align:center;padding:5px;margin:5px;float:left;">
-                    {{memberCount}} Members in {{teamCount}} Teams
-                </div>
-                <div class="greenBox" style="width:44%;text-align:center;padding:5px;margin:5px;float:left;">
-                    {{#linkTo "developers"}}+ Another Member{{/linkTo}}
-                </div>
-            </div>
-			<div id="TeamWidget" class="widget">
-                <div class="greenBox" style="width:45%;text-align:center;padding:5px;margin:5px;float:left;">
-                    {{memberCount}} Teams in total
-                </div>
-                <div class="greenBox" style="width:44%;text-align:center;padding:5px;margin:5px;float:left;">
-                    {{#linkTo "teams"}}+ Another Team{{/linkTo}}
-                </div>
-            </div>
-			<div class="heading" style="clear:both"><br>12 Month Schedule</div>
-			{{#view App.ScheduleView}}
-				Canvas not supported.
-			{{/view}}
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="developers">
-			{{#each developer in controller}}
-			<div class="idCard" {{bindAttr index="developer.id"}}>
-				<img {{bindAttr src="developer.picture"}}>
-				<span class="heading">{{developer.role}}</span><br />
-				<span class="detail">{{developer.firstName}} {{developer.lastName}}</span>
-				<div class="toolBar">
-					{{#linkTo developer developer}}
-						<span class="view icon"></span>
-					{{/linkTo}}
-					{{#linkTo developer developer}}
-						<span class="edit icon"></span>
-					{{/linkTo}}
-					<span class="icon delete"></span>
-				</div>
-			</div>
-			{{/each}}
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="developer">
-        	<img style="float:right;width:200px;height:200px;border-radius:1em" 
-			{{bindAttr src="picture"}}>
-			<span class="mainTitle">
-				Personal Profile
-			</span><br />
-			<span class="heading">
-				Name:&nbsp;
-			</span>
-			<span class="detail">
-				{{firstName}} {{lastName}}
-			</span><br />
-			<span class="heading">
-				Role:&nbsp;
-			</span>
-			<span class="detail">
-				{{role}}
-			</span><br />
-			<span class="heading">
-				Classification:&nbsp;
-			</span>
-			<span class="detail">
-				{{classification}}
-			</span><br />
-			<span class="heading">
-				Phone Number:&nbsp;
-			</span>
-			<span class="detail">
-				{{phoneNumber}}
-			</span><br />
-			<span class="heading">
-				Skype:&nbsp;
-			</span>
-			<span class="detail">
-				{{skype}}
-			</span><br />
-			<span class="heading">
-				eMail:&nbsp;
-			</span>
-			<span class="detail">
-				{{email}}
-			</span><br />
-			<br/>
-			<span class="heading">
-				Current teams:&nbsp;
-			</span>
-			<span class="detail">
-			</span><br/>
-			<br/>
-			<br/>
-			<span class="mainTitle" style="font-size:x-large">
-				Current Assignments:<br/>
-				<table style="width:100%">
-					<tr class="heading" style="font-size:small">
-						<td>
-							<b>Project Name</b>
-						</td>
-						<td>
-							<b>Classification</b>
-						</td>
-						<td>
-							<b>Date Start</b>
-						</td>
-						<td>
-							<b>Date End</b>
-						</td>
-						<td>
-							<b>Description</b>
-						</td>
-					</tr>
-				</table>
-			</span>
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="teams">
-        	Teams.
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="team">
-        	
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="projects">
-        	Projects.
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="project">
-        	
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="assignments">
-        	Assignments.
-        </script>
-        
-        <script type="text/x-handlebars" data-template-name="assignment">
-        	
+			// And it is really that simple...	
+			SCDX.changeView(year,month,duration);
+		}
         </script>
     </body>
     

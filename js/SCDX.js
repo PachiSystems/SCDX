@@ -51,16 +51,16 @@
 	SCDX.highPrioColor = '#F66';
 	SCDX.lowPrioColor = '#6F6';
 	SCDX.defaultPrioColor = '#66F';
-	SCDX.roundedCorners = true;
+	SCDX.roundedCorners = false;
 	SCDX.timeToFade = 1000.0;
 	SCDX.fontFace = 'bold 16px Arial';
 
 	// PUBLIC METHODS
-	SCDX.createSchedule = function (canvasID,year,width,numMonths,startMonth) {
+	SCDX.createSchedule = function (divID,year,width,numMonths,startMonth) {
 		// Get the container that we're going to be working within.
-		CONTAINER = document.getElementById(canvasID);
+		CONTAINER = document.getElementById(divID);
 		// Set these variables with the data passed, or with a default value.
-		canvasElement = canvasID;
+		canvasElement = divID;
 		currentYear = displayYear = Number(year) || today.getFullYear();
 		WIDTH = Number(width) || CONTAINER.getAttribute('width');
 		numberMonths = Number(numMonths) || 12;
@@ -82,6 +82,8 @@
 		CANVAS.style.top = 0;
 		errorMessage = document.createElement('canvas');
 		errorMessage.id = 'SCDX-errorMessage';
+		errorMessage.style.zIndex = 2;
+		errorMessage.style.position = 'fixed';
 		toolTip.style.zIndex = 1;
 		
 		CTX = CANVAS.getContext('2d');
@@ -111,14 +113,6 @@
 			}
 		
 		};
-		
-		CANVAS.displayToolTip = function(x,y,text) {
-			
-		}
-		
-		CANVAS.hideToolTip = function() {
-			tooltip.style.visibility = 'hidden';
-		}
 		
 		CANVAS.onmouseout = function () {
 			toolTip.style.visibility = 'hidden';
@@ -158,7 +152,7 @@
 		// Set the width of the canvas.
 		CANVAS.width = WIDTH;
 		// Set a default height to accommodate the top bar and an error message if needed.
-		HEIGHT = CANVAS.height = 100;
+		//HEIGHT = CANVAS.height = 100;
 		
 		LEFT_COLUMN = WIDTH * 0.15625
 		ONE_DAY = (WIDTH - LEFT_COLUMN) / DAYS_THIS_YEAR;
@@ -172,25 +166,10 @@
 	}
 	
 	SCDX.setSchedule = function(objArray) {
-		debugRenderStart = Date.now();
 		if (typeof objArray != "object") {
 			SCDX.displayErrorMessage('Invalid schedule object.');
-			debugRenderEnd = Date.now();
-			console.log('Render took: ' + (debugRenderEnd - debugRenderStart) + ' millisecond(s).');
 			return;
 		};
-		/****
-		* This should be an array. Each item in the array should be a JavaScript object.
-		* Every item in the object MUST have the following fields:
-		* groupID (Number) - Groups part of the schedule together.
-		* startDate (String) - Format YYYY-MM-DD
-		* endDate (String) - Format YYY-MM-DD
-		*
-		* The following are optional:
-		* prio (String) - Low, Medium or High.
-		* decription (String) - A description of the schedule item.
-		* subDesc (String) - A subtitle.
-		*/
 		for(var i = 0, len = objArray.length;i < len; i++) {
 			projList.push(objArray[i]);
 		}
@@ -198,15 +177,15 @@
 		// Calculate height of the canvas now...
 		HEIGHT = CANVAS.height = (Math.max.apply(Math,projList.map(function(projList){return projList.groupId;}))+1) * 49;
 		drawSchedule();
-		debugRenderEnd = Date.now();
-		console.log('Render took: ' + (debugRenderEnd - debugRenderStart) + ' millisecond(s).');
 	}
 	
 	SCDX.displayErrorMessage = function(textToDisplay,fadeSpeed) {
 		errorMessage.style.opacity = 1;
+		errorMessage.style.visibility = 'visible';
 		obj = CANVAS;
 		canvasX = obj.offsetLeft;
 		canvasY = obj.offsetTop;
+		
 		while(obj.offsetParent) {
 			canvasX += obj.offsetLeft;
 			canvasY += obj.offsetTop;
@@ -214,7 +193,6 @@
 			else {obj=obj.offsetParent;}
 		}
 		
-		errorMessage.style.zIndex = 2;
 		errorMessage.style.left = 0;
 		errorMessage.style.top = 0;
 		errorMessage.style.position = 'absolute';
@@ -222,21 +200,27 @@
 		errorMessage.style.top = canvasY;
 		errorMessage.width = CANVAS.width;
 		errorMessage.height = CANVAS.height;
-		errorMessage.style.zIndex = CANVAS.style.zIndex + 1;
+		errorMessage.style.zIndex = 12;
 		overlayCTX = errorMessage.getContext('2d');
+		
+		// Darken the background...
+		overlayCTX.fillStyle = 'rgba(255,255,255,0.5)';
+		overlayCTX.fillRect(0,0,WIDTH,HEIGHT);
+		
 		overlayCTX.fillStyle = '#FFFFE0';
 		overlayCTX.strokeStyle = '#333';
 		overlayCTX.font = SCDX.fontFace;
 		
 		if(SCDX.roundedCorners) {
-			roundRect(overlayCTX,(WIDTH / 4),52,(WIDTH / 2 ),47,5,true,true);
+			roundRect(overlayCTX,(WIDTH / 4),(HEIGHT/2),(WIDTH / 2 ),47,5,true,true);
 		} else {
-			overlayCTX.fillRect((WIDTH/4),52,(WIDTH / 2),47);
+			overlayCTX.fillRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
+			overlayCTX.strokeRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
 		}
 		
 		overlayCTX.fillStyle = '#F00';
 		overlayCTX.textAlign = 'center';
-		overlayCTX.fillText(textToDisplay,WIDTH/2,80);
+		overlayCTX.fillText(textToDisplay,WIDTH/2,(HEIGHT/2)+5);
 		
 		setTimeout(function() {
 			fade(errorMessage,fadeSpeed);
@@ -275,7 +259,9 @@
 	function drawSchedule() {
 		// Ensure we reset variables that might have been changed:
 		currentYear = displayYear;
-		CANVAS.width = WIDTH;
+		CANVAS.width = errorMessage.width = WIDTH;
+		CANVAS.height =  errorMessage.height = HEIGHT;
+		console.log(HEIGHT);
 		var xPos = LEFT_COLUMN;
 		
 		// GRID LINE DRAWING
@@ -322,8 +308,21 @@
 		CTX.lineTo(WIDTH,47.5);
 		CTX.stroke();
 		
-		if(projList.length >0) {
+		if(projList.length > 0) {
 			// PROJECT RENDERING
+			
+			// How about, to stop it from overlaying strokes on the regular fillRect, we draw the
+			// dividing lines here?...
+			var maxGroup = Math.max.apply(Math,projList.map(function(projList){return projList.groupId;})),
+				lineHeight = Math.round((HEIGHT - 47.5) / maxGroup)-1;
+			CTX.strokeStyle = '#CCC';
+			for(var i = 0, len = maxGroup; i < len; i++) {
+				CTX.moveTo(0,Math.round((lineHeight * (i+1))+49)-0.5);
+				CTX.lineTo(WIDTH,Math.round((lineHeight * (i+1))+49)-0.5);
+				CTX.stroke();
+			}
+			
+			
 			for(var i = 0, len = projList.length; i < len; i++) {
 				// Itterate over the list of projects.
 				// REMEMBER: DATES ARE TIMESTAMPED!
@@ -344,10 +343,12 @@
 					curGroup = projList[i].groupId;
 					CTX.fillStyle = '#333';
 					CTX.fillText(projList[i].rowLabel,5,((projList[i].groupId+0.6) * 49));
+					/*
 					CTX.moveTo(0,((projList[i].groupId + 1) * 49)-0.5);
 					CTX.lineTo(WIDTH,((projList[i].groupId + 1) * 49)-0.5);
 					CTX.strokeStyle = '#CCC';
 					CTX.stroke();
+					*/
 				}
 				
 				// Set correct colour for priority:
@@ -394,7 +395,6 @@
 					lengthOfProject = (((viewEnd - viewStart) / 86400000) + 1) * ONE_DAY;
 					leftEdge = LEFT_COLUMN;
 					validProj = true;
-					
 				}
 				
 				if(validProj) {
@@ -406,7 +406,9 @@
 					if(SCDX.roundedCorners) {
 						roundRect(CTX, leftEdge, topEdge, lengthOfProject,47,5,true,true);
 					} else {
+						CTX.clearRect(leftEdge,topEdge,lengthOfProject,47);
 						CTX.fillRect(leftEdge,topEdge,lengthOfProject,47);
+						CTX.strokeRect(leftEdge,topEdge,lengthOfProject,47);
 					}
 				}
 			}
@@ -466,6 +468,9 @@
 			// change FadeState to 2 or -2 depending on final state being opaque or transparent.
 			element.style.opacity = element.FadeState == 1 ? 1 : 0;
 			element.FadeState = element.FadeState == 1?2:-2;
+			if(element.FadeState == -2) {
+				element.style.visibility = 'hidden';
+			}
 			return;
 		}
 		
