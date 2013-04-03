@@ -1,21 +1,35 @@
+/*
+   Copyright 2013, Brian Milton
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+ 
 (function (window,undefined) {
 	
 	// PRIVATE PROPERTIES
 	var
 	SCDX = {},
 	MONTHS = [{'name':'Jan','days':31},{'name':'Feb','days':28},{'name':'Mar','days':31},{'name':'Apr','days':30},{'name':'May','days':31},{'name':'Jun','days':30},{'name':'Jul','days':31},{'name':'Aug','days':31},{'name':'Sep','days':30},{'name':'Oct','days':31},{'name':'Nov','days':30},{'name':'Dec','days':31}],
+	HEIGHT = 100,
 	curGroup = DAYS_THIS_YEAR = 0,
 	projList = [],
 	today = new Date(),
 	LEFT_COLUMN,
 	ONE_DAY,
 	CTX,
-	CANVAS,
 	WIDTH,
-	HEIGHT,
 	CONTAINER,
 	canvasElement,
-	errorMessage,
 	displayYear,
 	currentYear,
 	numberMonths,
@@ -27,25 +41,13 @@
 	statusText,
 	canvasX,
 	canvasY,
-	// We have to create a tooltip div to float above the canvas...
+	CANVAS = document.createElement('canvas'),
+	errorMessage = document.createElement('canvas'),
 	toolTip = document.createElement('span');
-	toolTip.style.backgroundColor = '#FFFFE0';
-	toolTip.style.borderColor = '#333';
-	toolTip.style.borderStyle = 'solid';
-	toolTip.style.borderWidth = 'thin';
-	toolTip.style.padding = '5px';
-	toolTip.style.display = 'inline-block';
-	toolTip.style.width = '200px';
-	toolTip.style.textAlign = 'center';
-	toolTip.style.whiteSpace = 'nowrap';
-	toolTip.style.float = 'left';
-	toolTip.style.position = 'fixed';
-	toolTip.style.left = '0px';
-	toolTip.style.right = '0px';
-	toolTip.style.fontFamily = 'Arial';
-	toolTip.style.fontSize = '10px';
-	toolTip.style.fontWeight = 'bolder';
-	toolTip.style.visibility = 'hidden';
+	
+	CANVAS.id = 'SCDX-viewLayer';
+	errorMessage.id = 'SCDX-errorMessage';
+	toolTip.id = 'SCDX-toolTip';
 	
 	// PUBLIC PROPERTIES / SETTINGS
 	SCDX.highPrioColor = '#F66';
@@ -75,21 +77,10 @@
 		
 		CONTAINER.innerHTML = '';
 		CONTAINER.style.position='relative';
-		CANVAS = document.createElement('canvas');
-		CANVAS.id = 'SCDX-viewLayer';
-		CANVAS.style.zIndex = 0;
-		CANVAS.style.left = 0;
-		CANVAS.style.top = 0;
-		errorMessage = document.createElement('canvas');
-		errorMessage.id = 'SCDX-errorMessage';
-		errorMessage.style.zIndex = 2;
-		errorMessage.style.position = 'fixed';
-		toolTip.style.zIndex = 1;
-		
 		CTX = CANVAS.getContext('2d');
 		CONTAINER.appendChild(CANVAS);
-		CONTAINER.appendChild(errorMessage);
 		CONTAINER.appendChild(toolTip);
+		CONTAINER.appendChild(errorMessage);
 		
 		// Need to capture the mouse position:
 		CANVAS.onmousemove = function (event) {
@@ -118,12 +109,11 @@
 		}
 		
 		// Figure out which date the view starts on (TIMESTAMP):
-		viewStart = Date.parse( displayYear + '-' + startingMonth + '-01 00:00:00 GMT');
+		viewStart = Number(Date.parse("01 "+MONTHS[startingMonth-1].name+" "+displayYear+" 00:00:00 GMT"));
 		
-		// How about the end of the view?
-		viewEnd = startingMonth + numberMonths;
-		// First we need the month on which it starts
+		// viewEnd calculation: First we need the month on which it starts
 		// Then add the number of months to it.
+		viewEnd = startingMonth + numberMonths;
 		// Now we need to figure out how many days there are in those months.
 		// Start at the 'startingMonth' and then move up until we're at the end.
 		var tempMonth = startingMonth-1;
@@ -156,7 +146,7 @@
 		LEFT_COLUMN = WIDTH * 0.15625
 		ONE_DAY = (WIDTH - LEFT_COLUMN) / DAYS_THIS_YEAR;
 		
-		//drawSchedule();
+		drawSchedule();
 	}
 	
 	SCDX.changeView = function(year,startMonth,numMonths) {
@@ -192,14 +182,11 @@
 			else {obj=obj.offsetParent;}
 		}
 		
-		errorMessage.style.left = 0;
-		errorMessage.style.top = 0;
-		errorMessage.style.position = 'absolute';
+		
 		errorMessage.style.left = canvasX;
 		errorMessage.style.top = canvasY;
 		errorMessage.width = CANVAS.width;
 		errorMessage.height = CANVAS.height;
-		errorMessage.style.zIndex = 12;
 		overlayCTX = errorMessage.getContext('2d');
 		
 		// Darken the background...
@@ -260,7 +247,7 @@
 		currentYear = displayYear;
 		CANVAS.width = errorMessage.width = WIDTH;
 		CANVAS.height =  errorMessage.height = HEIGHT;
-		console.log(HEIGHT);
+		
 		var xPos = LEFT_COLUMN;
 		
 		// GRID LINE DRAWING

@@ -1,13 +1,31 @@
 <!DOCTYPE html>
 <html>
+	<!--
+       Copyright 2013, Brian Milton
+    
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+    
+         http://www.apache.org/licenses/LICENSE-2.0
+    
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+    -->
     <head>
 	    <title>SCDX Demo</title>
+        <link href="css/SCDX.css" type="text/css" rel="stylesheet">
+        <link href="css/demo.css" type="text/css" rel="stylesheet">
     </head>
     
     <body>
     	<!-- This is where the schedule object will be -->
+        <div>
         <div width="1024" id="scheduleView"></div>
-        
+        </div>
         <!-- A set of inputs to change the view as a demo -->
         <div>
             Year: <input type="text" value="2013" style="width:40px" id="yearField">
@@ -90,6 +108,7 @@
 		// Assign the array of items to the view.
 		SCDX.setSchedule(scheduleList);
 		
+		// Pop up an error message, but as a demonstration, not because of an error.
 		SCDX.displayErrorMessage("Welcome to SCDX. Don't panic!",2500);
 		
 		// When the button is clicked, this function will triger a view change:
