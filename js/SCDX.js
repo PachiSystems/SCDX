@@ -36,11 +36,9 @@
 	startingMonth,
 	viewStart,
 	viewEnd,
-	debugRenderStart,
-	debugRenderEnd,
-	statusText,
 	canvasX,
 	canvasY,
+	hoverObj = {isHovering:false,project:{}},
 	CANVAS = document.createElement('canvas'),
 	errorMessage = document.createElement('canvas'),
 	toolTip = document.createElement('span');
@@ -83,21 +81,40 @@
 		CONTAINER.appendChild(errorMessage);
 		
 		// Need to capture the mouse position:
-		CANVAS.onmousemove = function (event) {
+		CANVAS.onmousemove = CANVAS.onmouseover = function (event) {
 			event = event || window.event;
 			// Check the positions of the projects with the mouse position.
 			// If it's over a project, and there's a description, then show the tool tip for it.
-			for(var i = 0, len = projList.length; i < len; i++) {
-				var curProj = projList[i];
-				if( (event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
-					// In the zone.
-					if(typeof curProj.description != "undefined") {
-						toolTip.style.left = event.clientX + 'px';
-						toolTip.style.top = event.clientY + 'px';
-						toolTip.style.visibility = 'visible';
-						toolTip.innerHTML = curProj.description;
-					} else {
-						toolTip.style.visibility = 'hidden';
+			// For some reason, this flashes when hovering...
+			if(hoverObj.isHovering) {
+				curProj = hoverObj.project;
+				console.log(curProj.xPos);
+				// Hovering over an item. Check we're still in it.
+				if((event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
+					// Update the toolTip position.
+					toolTip.style.left = (event.clientX + 15) + 'px';
+					toolTip.style.top = event.clientY + 'px';
+				} else {
+					console.log("Hiding... Did you call it?");
+					// Clear the hoverObj.
+					hoverObj.isHovering = false;
+					// Hide the toolTip.
+					toolTip.style.visibility = 'hidden';
+				}
+			} else {
+				// Not hovering, so check to see if we've come into something.
+				for(var i = 0, len = projList.length; i < len; i++) {
+					var curProj = projList[i];
+					if( (event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
+						// In the zone.
+						if(typeof curProj.description != "undefined") {
+							toolTip.style.left = (event.clientX + 15) + 'px';
+							toolTip.style.top = event.clientY + 'px';
+							toolTip.style.visibility = 'visible';
+							toolTip.innerHTML = curProj.description;
+							hoverObj.isHovering = true;
+							hoverObj.project = curProj;
+						}
 					}
 				}
 			}
@@ -105,6 +122,7 @@
 		
 		// And just to make sure that little tooltip isn't going to fllow the mouse everywhere...
 		CANVAS.onmouseout = function () {
+			console.log("mouseout");
 			toolTip.style.visibility = 'hidden';
 		}
 		
