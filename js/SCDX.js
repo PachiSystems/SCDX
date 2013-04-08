@@ -19,16 +19,16 @@
 	// PRIVATE PROPERTIES
 	var
 	SCDX = {},
-	MONTHS = [{'name':'Jan','days':31},{'name':'Feb','days':28},{'name':'Mar','days':31},{'name':'Apr','days':30},{'name':'May','days':31},{'name':'Jun','days':30},{'name':'Jul','days':31},{'name':'Aug','days':31},{'name':'Sep','days':30},{'name':'Oct','days':31},{'name':'Nov','days':30},{'name':'Dec','days':31}],
+	months = [{'n':'Jan','d':31},{'n':'Feb','d':28},{'n':'Mar','d':31},{'n':'Apr','d':30},{'n':'May','d':31},{'n':'Jun','d':30},{'n':'Jul','d':31},{'n':'Aug','d':31},{'n':'Sep','d':30},{'n':'Oct','d':31},{'n':'Nov','d':30},{'n':'Dec','d':31}],
 	HEIGHT = 100,
-	curGroup = DAYS_THIS_YEAR = 0,
+	curGroup = daysThisYear = 0,
 	projList = [],
 	today = new Date(),
-	LEFT_COLUMN,
-	ONE_DAY,
-	CTX,
+	leftColumn,
+	oneDay,
+	ctx,
 	WIDTH,
-	CONTAINER,
+	container,
 	canvasElement,
 	displayYear,
 	currentYear,
@@ -39,11 +39,11 @@
 	canvasX,
 	canvasY,
 	hoverObj = {isHovering:false,project:{}},
-	CANVAS = document.createElement('canvas'),
+	canvas = document.createElement('canvas'),
 	errorMessage = document.createElement('canvas'),
 	toolTip = document.createElement('span');
 	
-	CANVAS.id = 'SCDX-viewLayer';
+	canvas.id = 'SCDX-viewLayer';
 	errorMessage.id = 'SCDX-errorMessage';
 	toolTip.id = 'SCDX-toolTip';
 	
@@ -58,76 +58,30 @@
 	// PUBLIC METHODS
 	SCDX.createSchedule = function (divID,year,width,numMonths,startMonth) {
 		// Get the container that we're going to be working within.
-		CONTAINER = document.getElementById(divID);
+		container = document.getElementById(divID);
 		// Set these variables with the data passed, or with a default value.
 		canvasElement = divID;
 		currentYear = displayYear = Number(year) || today.getFullYear();
-		WIDTH = Number(width) || CONTAINER.getAttribute('width');
+		WIDTH = Number(width) || container.getAttribute('width');
 		numberMonths = Number(numMonths) || 12;
 		startingMonth = Number(startMonth) || today.getMonth()+1;
 		
 		// Need to check if the starting year is a leap year.
 		if(Number(displayYear)%4 != 0) {
-			MONTHS[1].days = 28;
+			months[1].d = 28;
 		} else {
-			MONTHS[1].days = 29;
+			months[1].d = 29;
 		}
 		
-		CONTAINER.innerHTML = '';
-		CONTAINER.style.position='relative';
-		CTX = CANVAS.getContext('2d');
-		CONTAINER.appendChild(CANVAS);
-		CONTAINER.appendChild(toolTip);
-		CONTAINER.appendChild(errorMessage);
-		
-		// Need to capture the mouse position:
-		CANVAS.onmousemove = CANVAS.onmouseover = function (event) {
-			event = event || window.event;
-			// Check the positions of the projects with the mouse position.
-			// If it's over a project, and there's a description, then show the tool tip for it.
-			// For some reason, this flashes when hovering...
-			if(hoverObj.isHovering) {
-				curProj = hoverObj.project;
-				console.log(curProj.xPos);
-				// Hovering over an item. Check we're still in it.
-				if((event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
-					// Update the toolTip position.
-					toolTip.style.left = (event.clientX + 15) + 'px';
-					toolTip.style.top = event.clientY + 'px';
-				} else {
-					console.log("Hiding... Did you call it?");
-					// Clear the hoverObj.
-					hoverObj.isHovering = false;
-					// Hide the toolTip.
-					toolTip.style.visibility = 'hidden';
-				}
-			} else {
-				// Not hovering, so check to see if we've come into something.
-				for(var i = 0, len = projList.length; i < len; i++) {
-					var curProj = projList[i];
-					if( (event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
-						// In the zone.
-						if(typeof curProj.description != "undefined") {
-							toolTip.style.left = (event.clientX + 15) + 'px';
-							toolTip.style.top = event.clientY + 'px';
-							toolTip.style.visibility = 'visible';
-							toolTip.innerHTML = curProj.description;
-							hoverObj.isHovering = true;
-							hoverObj.project = curProj;
-						}
-					}
-				}
-			}
-		};
-		
-		// And just to make sure that little tooltip isn't going to fllow the mouse everywhere...
-		CANVAS.onmouseout = function () {
-			console.log("mouseout");
-			toolTip.style.visibility = 'hidden';
-		}
+		container.innerHTML = '';
+		container.style.position='relative';
+		ctx = canvas.getContext('2d');
+		container.appendChild(canvas);
+		container.appendChild(toolTip);
+		container.appendChild(errorMessage);
 		
 		// Figure out which date the view starts on (TIMESTAMP):
-		viewStart = Number(Date.parse("01 "+MONTHS[startingMonth-1].name+" "+displayYear+" 00:00:00 GMT"));
+		viewStart = Number(Date.parse("01 "+months[startingMonth-1].n+" "+displayYear+" 00:00:00 GMT"));
 		
 		// viewEnd calculation: First we need the month on which it starts
 		// Then add the number of months to it.
@@ -135,7 +89,7 @@
 		// Now we need to figure out how many days there are in those months.
 		// Start at the 'startingMonth' and then move up until we're at the end.
 		var tempMonth = startingMonth-1;
-		DAYS_THIS_YEAR = 0;
+		daysThisYear = 0;
 		for (var i = 0; i<numberMonths;i++) {
 			if(tempMonth == 12) {
 				// Flicking past a year. Reset month...
@@ -144,25 +98,25 @@
 				currentYear++;
 				// Check for a leap year.
 				if(currentYear%4 == 0) {
-					MONTHS[1].days = 29;
+					months[1].d = 29;
 				} else {
-					MONTHS[1].days = 28;
+					months[1].d = 28;
 				}
 			}
-			DAYS_THIS_YEAR += MONTHS[tempMonth].days;
+			daysThisYear += months[tempMonth].d;
 			tempMonth++;
 		}
 		
 		// The minus one ensures we don't trigger the 1st day of the next month... Think about it...
-		viewEnd = (viewStart + ((DAYS_THIS_YEAR) * 86400000))-1;
+		viewEnd = (viewStart + ((daysThisYear) * 86400000))-1;
 		
 		// Set the width of the canvas.
-		CANVAS.width = WIDTH;
+		canvas.width = WIDTH;
 		// Set a default height to accommodate the top bar and an error message if needed.
-		//HEIGHT = CANVAS.height = 100;
+		//HEIGHT = canvas.height = 100;
 		
-		LEFT_COLUMN = WIDTH * 0.15625
-		ONE_DAY = (WIDTH - LEFT_COLUMN) / DAYS_THIS_YEAR;
+		leftColumn = WIDTH * 0.15625
+		oneDay = (WIDTH - leftColumn) / daysThisYear;
 		
 		drawSchedule();
 	}
@@ -182,14 +136,14 @@
 		}
 		
 		// Calculate height of the canvas now...
-		HEIGHT = CANVAS.height = (Math.max.apply(Math,projList.map(function(projList){return projList.groupId;}))+1) * 49;
+		HEIGHT = canvas.height = (Math.max.apply(Math,projList.map(function(projList){return projList.groupId;}))+1) * 49;
 		drawSchedule();
 	}
 	
 	SCDX.displayErrorMessage = function(textToDisplay,fadeSpeed) {
 		errorMessage.style.opacity = 1;
 		errorMessage.style.visibility = 'visible';
-		obj = CANVAS;
+		obj = canvas;
 		canvasX = obj.offsetLeft;
 		canvasY = obj.offsetTop;
 		
@@ -203,28 +157,28 @@
 		
 		errorMessage.style.left = canvasX;
 		errorMessage.style.top = canvasY;
-		errorMessage.width = CANVAS.width;
-		errorMessage.height = CANVAS.height;
-		overlayCTX = errorMessage.getContext('2d');
+		errorMessage.width = canvas.width;
+		errorMessage.height = canvas.height;
+		overlayctx = errorMessage.getContext('2d');
 		
 		// Darken the background...
-		overlayCTX.fillStyle = 'rgba(255,255,255,0.5)';
-		overlayCTX.fillRect(0,0,WIDTH,HEIGHT);
+		overlayctx.fillStyle = 'rgba(255,255,255,0.5)';
+		overlayctx.fillRect(0,0,WIDTH,HEIGHT);
 		
-		overlayCTX.fillStyle = '#FFFFE0';
-		overlayCTX.strokeStyle = '#333';
-		overlayCTX.font = SCDX.fontFace;
+		overlayctx.fillStyle = '#FFFFE0';
+		overlayctx.strokeStyle = '#333';
+		overlayctx.font = SCDX.fontFace;
 		
 		if(SCDX.roundedCorners) {
-			roundRect(overlayCTX,(WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2),5,true,true);
+			roundRect(overlayctx,(WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2),5,true,true);
 		} else {
-			overlayCTX.fillRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
-			overlayCTX.strokeRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
+			overlayctx.fillRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
+			overlayctx.strokeRect((WIDTH/4),(HEIGHT / 4),(WIDTH / 2),(HEIGHT / 2));
 		}
 		
-		overlayCTX.fillStyle = '#F00';
-		overlayCTX.textAlign = 'center';
-		overlayCTX.fillText(textToDisplay,WIDTH/2,(HEIGHT/2)+5);
+		overlayctx.fillStyle = '#F00';
+		overlayctx.textAlign = 'center';
+		overlayctx.fillText(textToDisplay,WIDTH/2,(HEIGHT/2)+5);
 		
 		setTimeout(function() {
 			fade(errorMessage,fadeSpeed);
@@ -263,54 +217,54 @@
 	function drawSchedule() {
 		// Ensure we reset variables that might have been changed:
 		currentYear = displayYear;
-		CANVAS.width = errorMessage.width = WIDTH;
-		CANVAS.height =  errorMessage.height = HEIGHT;
+		canvas.width = errorMessage.width = WIDTH;
+		canvas.height =  errorMessage.height = HEIGHT;
 		
-		var xPos = LEFT_COLUMN;
+		var xPos = leftColumn;
 		
 		// GRID LINE DRAWING
 		
 		// Draw the horizontal year dividing line.
-		CTX.moveTo(0,26.5);
-		CTX.lineTo(WIDTH,26.5);
+		ctx.moveTo(0,26.5);
+		ctx.lineTo(WIDTH,26.5);
 		
 		// Team dividing line...
-		CTX.moveTo(xPos,0);
-		CTX.lineTo(xPos,HEIGHT);
+		ctx.moveTo(xPos,0);
+		ctx.lineTo(xPos,HEIGHT);
 		
 		// Write the starting year.
-		CTX.fillStyle = '#333333';
-		CTX.font = SCDX.fontFace;
-		CTX.fillText(currentYear,xPos + 5,21);
+		ctx.fillStyle = '#333333';
+		ctx.font = SCDX.fontFace;
+		ctx.fillText(currentYear,xPos + 5,21);
 		
 		// Now to draw the divisions for the months...
 		var curMonth = startingMonth-1;
-		CTX.strokeStyle = "#CCC";
+		ctx.strokeStyle = "#CCC";
 		for(var i = 0; i < numberMonths; i++) {
 			// Calculate a change in the year.
 			if(curMonth == 12) {
 				currentYear++;
 				if( (currentYear+1)%4 == 0) {
-					MONTHS[1].days = 29;
+					months[1].d = 29;
 				} else {
-					MONTHS[1].days = 28;
+					months[1].d = 28;
 				}
-				CTX.fillText(currentYear, xPos+5,21);
+				ctx.fillText(currentYear, xPos+5,21);
 				curMonth = 0;
-				CTX.moveTo(xPos,0);
-				CTX.lineTo(xPos,HEIGHT);
+				ctx.moveTo(xPos,0);
+				ctx.lineTo(xPos,HEIGHT);
 			}
-			CTX.fillText(MONTHS[curMonth].name,xPos+5,42);
-			xPos += MONTHS[curMonth].days * ONE_DAY;
-			CTX.moveTo(xPos,47.5);
-			CTX.lineTo(xPos,HEIGHT);
+			ctx.fillText(months[curMonth].n,xPos+5,42);
+			xPos += months[curMonth].d * oneDay;
+			ctx.moveTo(xPos,47.5);
+			ctx.lineTo(xPos,HEIGHT);
 			curMonth++;
 		}
 		
 		// Dividing line between months and schedule.
-		CTX.moveTo(0,47.5);
-		CTX.lineTo(WIDTH,47.5);
-		CTX.stroke();
+		ctx.moveTo(0,47.5);
+		ctx.lineTo(WIDTH,47.5);
+		ctx.stroke();
 		
 		if(projList.length > 0) {
 			// PROJECT RENDERING
@@ -319,11 +273,11 @@
 			// dividing lines here?...
 			var maxGroup = Math.max.apply(Math,projList.map(function(projList){return projList.groupId;})),
 				lineHeight = Math.round((HEIGHT - 47.5) / maxGroup)-1;
-			CTX.strokeStyle = '#CCC';
+			ctx.strokeStyle = '#CCC';
 			for(var i = 0, len = maxGroup; i < len; i++) {
-				CTX.moveTo(0,Math.round((lineHeight * (i+1))+49)-0.5);
-				CTX.lineTo(WIDTH,Math.round((lineHeight * (i+1))+49)-0.5);
-				CTX.stroke();
+				ctx.moveTo(0,Math.round((lineHeight * (i+1))+49)-0.5);
+				ctx.lineTo(WIDTH,Math.round((lineHeight * (i+1))+49)-0.5);
+				ctx.stroke();
 			}
 			
 			
@@ -334,7 +288,7 @@
 				// Temporary variables for each loop.
 				var startDate = projList[i].startDate,
 					endDate = projList[i].endDate,
-					startPos = LEFT_COLUMN,
+					startPos = leftColumn,
 					numDays = endDay = z = 0,
 					curMonth = startingMonth,
 					thisProject = projList[i];
@@ -345,20 +299,20 @@
 				// Display the group name if it's a different group.
 				if(projList[i].groupId != curGroup) {
 					curGroup = projList[i].groupId;
-					CTX.fillStyle = '#333';
-					CTX.fillText(projList[i].rowLabel,5,((projList[i].groupId+0.6) * 49));
+					ctx.fillStyle = '#333';
+					ctx.fillText(projList[i].rowLabel,5,((projList[i].groupId+0.6) * 49));
 				}
 				
 				// Set correct colour for priority:
 				switch(thisProject.prio) {
 					case 'high':
-						CTX.fillStyle = CTX.strokeStyle = SCDX.highPrioColor;
+						ctx.fillStyle = ctx.strokeStyle = SCDX.highPrioColor;
 						break;
 					case 'low':
-						CTX.fillStyle = CTX.strokeStyle = SCDX.lowPrioColor;
+						ctx.fillStyle = ctx.strokeStyle = SCDX.lowPrioColor;
 						break;
 					default:
-						CTX.fillStyle = CTX.strokeStyle = SCDX.defaultPrioColor;
+						ctx.fillStyle = ctx.strokeStyle = SCDX.defaultPrioColor;
 						break;
 				}
 				
@@ -371,27 +325,27 @@
 				if(thisProject.startDate >= viewStart && thisProject.endDate <= viewEnd) {
 					// The project is wholly contiained.
 					// The length of the project in pixels (including the last day = +1):
-					lengthOfProject = (((thisProject.endDate-thisProject.startDate) / 86400000) + 1) * ONE_DAY;
+					lengthOfProject = (((thisProject.endDate-thisProject.startDate) / 86400000) + 1) * oneDay;
 					// The x position of the project:
-					leftEdge = LEFT_COLUMN + ( ( ( thisProject.startDate - viewStart) / 86400000) * ONE_DAY );
+					leftEdge = leftColumn + ( ( ( thisProject.startDate - viewStart) / 86400000) * oneDay );
 					validProj = true;
 				} else if (thisProject.endDate > viewStart && thisProject.endDate < viewEnd) {
 					// The project starts before the view, but ends before the end of the view.
-					lengthOfProject = (((thisProject.endDate-viewStart) / 86400000) + 1) * ONE_DAY;
+					lengthOfProject = (((thisProject.endDate-viewStart) / 86400000) + 1) * oneDay;
 					// The x position of the project:
-					leftEdge = LEFT_COLUMN;
+					leftEdge = leftColumn;
 					validProj = true;
 				} else if (thisProject.startDate > viewStart && thisProject.startDate < viewEnd && thisProject.endDate > viewEnd) {
 					// This project stars in the view, but extends off the right hand side.
 					// The length of the project in pixels:
-					lengthOfProject = (((viewEnd-thisProject.startDate) / 86400000) + 1) * ONE_DAY;
+					lengthOfProject = (((viewEnd-thisProject.startDate) / 86400000) + 1) * oneDay;
 					// The x position of the project:
-					leftEdge = LEFT_COLUMN + ( ( ( thisProject.startDate - viewStart) / 86400000) * ONE_DAY );
+					leftEdge = leftColumn + ( ( ( thisProject.startDate - viewStart) / 86400000) * oneDay );
 					validProj = true;
 				} else if (thisProject.startDate <= viewStart && thisProject.endDate >= viewEnd) {
 					// The project fills the ENTIRE view! It starts before the view and finishes after.
-					lengthOfProject = (((viewEnd - viewStart) / 86400000) + 1) * ONE_DAY;
-					leftEdge = LEFT_COLUMN;
+					lengthOfProject = (((viewEnd - viewStart) / 86400000) + 1) * oneDay;
+					leftEdge = leftColumn;
 					validProj = true;
 				}
 				
@@ -402,11 +356,11 @@
 					projList[i].height = 47.5;
 					// Draw it on:
 					if(SCDX.roundedCorners) {
-						roundRect(CTX, leftEdge, topEdge, lengthOfProject,47.5,5,true,true);
+						roundRect(ctx, leftEdge, topEdge, lengthOfProject,47.5,5,true,true);
 					} else {
-						CTX.clearRect(leftEdge,topEdge,lengthOfProject,47.5);
-						CTX.fillRect(leftEdge,topEdge,lengthOfProject,47.5);
-						CTX.strokeRect(leftEdge,topEdge,lengthOfProject,47.5);
+						ctx.clearRect(leftEdge,topEdge,lengthOfProject,47.5);
+						ctx.fillRect(leftEdge,topEdge,lengthOfProject,47.5);
+						ctx.strokeRect(leftEdge,topEdge,lengthOfProject,47.5);
 					}
 				}
 			}
@@ -491,6 +445,60 @@
 		setTimeout(function(){animateFade(curTick,element)},33);
 	}
 	
+	// Need to capture the mouse position:
+	canvas.onmousemove = canvas.onmouseover = function (event) {
+		event = event || window.event;
+		// Check the positions of the projects with the mouse position.
+		// If it's over a project, and there's a description, then show the tool tip for it.
+		// For some reason, this flashes when hovering...
+		if(hoverObj.isHovering) {
+			curProj = hoverObj.project;
+			// Hovering over an item. Check we're still in it.
+			if((event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
+				// Update the toolTip position.
+				toolTip.style.left = (event.clientX + 15) + 'px';
+				toolTip.style.top = event.clientY + 'px';
+			} else {
+				// Clear the hoverObj.
+				hoverObj.isHovering = false;
+				// Hide the toolTip.
+				toolTip.style.visibility = 'hidden';
+			}
+		} else {
+			// Not hovering, so check to see if we've come into something.
+			if(projList.length != 0) {
+				for(var i = 0, len = projList.length; i < len; i++) {
+					var curProj = projList[i];
+					if( (event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
+						// In the zone.
+						var tempStart = new Date(curProj.startDate),
+							tempEnd = new Date(curProj.endDate);
+							
+						if(typeof curProj.description != "undefined") {
+							toolTip.style.left = (event.clientX + 15) + 'px';
+							toolTip.style.top = event.clientY + 'px';
+							toolTip.style.visibility = 'visible';
+							toolTip.innerHTML = curProj.description+"<br>"+tempStart.getUTCDate()+"-"+months[tempStart.getUTCMonth()].n+"-"+tempStart.getUTCFullYear()+" <b>&#8594;</b> "+tempEnd.getUTCDate()+"-"+months[tempEnd.getUTCMonth()].n+"-"+tempEnd.getUTCFullYear();
+							hoverObj.isHovering = true;
+							hoverObj.project = curProj;
+						} else {
+							toolTip.style.left = (event.clientX + 15) + 'px';
+							toolTip.style.top = event.clientY + 'px';
+							toolTip.style.visibility = 'visible';
+							toolTip.innerHTML = "Start:"+tempStart.getUTCDate()+"-"+months[tempStart.getUTCMonth()].n+"-"+tempStart.getUTCFullYear()+"<br>End:"+tempEnd.getUTCDate()+"-"+months[tempEnd.getUTCMonth()].n+"-"+tempEnd.getUTCFullYear();
+							hoverObj.isHovering = true;
+							hoverObj.project = curProj;
+						}
+					}
+				}
+			}
+		}
+	};
+	
+	// And just to make sure that little tooltip isn't going to fllow the mouse everywhere...
+	canvas.onmouseout = function () {
+		toolTip.style.visibility = 'hidden';
+	}
+	
 window.SCDX = SCDX;
-
 })(window);
