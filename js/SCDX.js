@@ -21,27 +21,14 @@
 	SCDX = {},
 	months = [{'n':'Jan','d':31},{'n':'Feb','d':28},{'n':'Mar','d':31},{'n':'Apr','d':30},{'n':'May','d':31},{'n':'Jun','d':30},{'n':'Jul','d':31},{'n':'Aug','d':31},{'n':'Sep','d':30},{'n':'Oct','d':31},{'n':'Nov','d':30},{'n':'Dec','d':31}],
 	HEIGHT = 100,
-	curGroup = daysThisYear = 0,
 	projList = [],
 	today = new Date(),
-	leftColumn,
-	oneDay,
-	ctx,
-	WIDTH,
-	container,
-	canvasElement,
-	displayYear,
-	currentYear,
-	numberMonths,
-	startingMonth,
-	viewStart,
-	viewEnd,
-	canvasX,
-	canvasY,
 	hoverObj = {isHovering:false,project:{}},
 	canvas = document.createElement('canvas'),
 	errorMessage = document.createElement('canvas'),
-	toolTip = document.createElement('span');
+	toolTip = document.createElement('span'),
+	viewInit = true,
+	curGroup,daysThisYear,leftColumn,oneDay,ctx,WIDTH,container,canvasElement,displayYear,currentYear,numberMonths,startingMonth,viewStart,viewEnd,canvasX,canvasY;
 	
 	canvas.id = 'SCDX-viewLayer';
 	errorMessage.id = 'SCDX-errorMessage';
@@ -54,6 +41,7 @@
 	SCDX.roundedCorners = true;
 	SCDX.timeToFade = 1000.0;
 	SCDX.fontFace = 'bold 16px Arial';
+	SCDX.floatTip = true;
 
 	// PUBLIC METHODS
 	SCDX.createSchedule = function (divID,year,width,numMonths,startMonth) {
@@ -131,6 +119,7 @@
 			SCDX.displayErrorMessage('Invalid schedule object.');
 			return;
 		};
+		viewInit = false;
 		for(var i = 0, len = objArray.length;i < len; i++) {
 			projList.push(objArray[i]);
 		}
@@ -141,6 +130,7 @@
 	}
 	
 	SCDX.displayErrorMessage = function(textToDisplay,fadeSpeed) {
+		errorMessage.FadeState = 2;
 		errorMessage.style.opacity = 1;
 		errorMessage.style.visibility = 'visible';
 		obj = canvas;
@@ -365,7 +355,9 @@
 				}
 			}
 		} else {
-			SCDX.displayErrorMessage('No projects to display.');
+			if(!viewInit) {
+				SCDX.displayErrorMessage('No projects to display.');
+			}
 		}
 	}
 	
@@ -384,7 +376,7 @@
 			// 2 = Fully opaque.
 			// 1 = Currently fading from transparent to opaque.
 			// -1 = Currently fading from opaque to transparent.
-			// -2 = Fullt transparent.
+			// -2 = Fully transparent.
 			if(element.style.opacity == null || element.style.opacity == '' || element.style.opacity == '1') {
 				// If it's opaque, set the FadeState to 2.
 				element.FadeState = 2;
@@ -445,19 +437,25 @@
 		setTimeout(function(){animateFade(curTick,element)},33);
 	}
 	
-	// Need to capture the mouse position:
+	// EVENT HANDLERS
+	
 	canvas.onmousemove = canvas.onmouseover = function (event) {
 		event = event || window.event;
 		// Check the positions of the projects with the mouse position.
 		// If it's over a project, and there's a description, then show the tool tip for it.
-		// For some reason, this flashes when hovering...
+		
 		if(hoverObj.isHovering) {
 			curProj = hoverObj.project;
 			// Hovering over an item. Check we're still in it.
 			if((event.layerX > curProj.xPos) && (event.layerX < (curProj.xPos+curProj.width)) && ((event.layerY > curProj.yPos)&&(event.layerY < (curProj.yPos + curProj.height)))) {
 				// Update the toolTip position.
-				toolTip.style.left = (event.clientX + 15) + 'px';
-				toolTip.style.top = event.clientY + 'px';
+				if(SCDX.floatTip) {
+					toolTip.style.left = (event.clientX + 15) + 'px';
+					toolTip.style.top = (event.clientY - 30)+ 'px';
+				} else {
+					toolTip.style.left = (curProj.xPos + curProj.width) + "px";
+					toolTip.style.top = curProj.yPos + "px";
+				}
 			} else {
 				// Clear the hoverObj.
 				hoverObj.isHovering = false;
@@ -475,15 +473,25 @@
 							tempEnd = new Date(curProj.endDate);
 							
 						if(typeof curProj.description != "undefined") {
-							toolTip.style.left = (event.clientX + 15) + 'px';
-							toolTip.style.top = event.clientY + 'px';
+							if(SCDX.floatTip) {
+								toolTip.style.left = (event.clientX + 15) + 'px';
+								toolTip.style.top = (event.clientY - 30)+ 'px';
+							} else {
+								toolTip.style.left = (curProj.xPos + curProj.width) + "px";
+								toolTip.style.top = curProj.yPos + "px";
+							}
 							toolTip.style.visibility = 'visible';
 							toolTip.innerHTML = curProj.description+"<br>"+tempStart.getUTCDate()+"-"+months[tempStart.getUTCMonth()].n+"-"+tempStart.getUTCFullYear()+" <b>&#8594;</b> "+tempEnd.getUTCDate()+"-"+months[tempEnd.getUTCMonth()].n+"-"+tempEnd.getUTCFullYear();
 							hoverObj.isHovering = true;
 							hoverObj.project = curProj;
 						} else {
-							toolTip.style.left = (event.clientX + 15) + 'px';
-							toolTip.style.top = event.clientY + 'px';
+							if(SCDX.floatTip) {
+								toolTip.style.left = (event.clientX + 15) + 'px';
+								toolTip.style.top = (event.clientY - 30)+ 'px';
+							} else {
+								toolTip.style.left = (curProj.xPos + curProj.width)+ "px";
+								toolTip.style.top = curProj.yPos + "px";
+							}
 							toolTip.style.visibility = 'visible';
 							toolTip.innerHTML = "Start:"+tempStart.getUTCDate()+"-"+months[tempStart.getUTCMonth()].n+"-"+tempStart.getUTCFullYear()+"<br>End:"+tempEnd.getUTCDate()+"-"+months[tempEnd.getUTCMonth()].n+"-"+tempEnd.getUTCFullYear();
 							hoverObj.isHovering = true;

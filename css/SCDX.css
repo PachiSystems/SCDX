@@ -17,22 +17,22 @@
 #SCDX-toolTip {
 	background-color: #FFFFE0;
 	border-color    : #333;
-	border-style : solid;
-	border-width:thin;
-	padding:5px;
-	display:inline-block;
-	width : 200px;
-	text-align:center;
-	white-space:nowrap;
-	float:left;
-	position:fixed;
-	left:0px;
-	right : 0px;
-	font-family:Arial, Helvetica, sans-serif;
-	font-size:10px;
-	font-weight:bolder;
-	visibility:hidden;
-	z-index:1;
+	border-style    : solid;
+	border-width    : thin;
+	padding         : 5px;
+	display         : inline-block;
+	width           : 200px;
+	text-align      : center;
+	white-space     : nowrap;
+	float           : left;
+	position        : absolute;
+	left            : 0px;
+	right           : 0px;
+	font-family     : Arial, Helvetica, sans-serif;
+	font-size       : 10px;
+	font-weight     : bolder;
+	visibility      : hidden;
+	z-index         : 1;
 }
 
 #SCDX-viewLayer {
